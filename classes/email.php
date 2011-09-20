@@ -142,12 +142,18 @@ class Email {
 		return Email::$mail->send($message);
 	}
 	
-    public static function send_mail($to, $subject, $message, $html = false)
+    public static function send_mail($to, $file, $data = array())
        {
-           $from = 'info@kodelearn.com';
+           $from = Kohana::message($file, 'from');
+           $subject = Kohana::message($file, 'subject');
+           $message = Kohana::message($file, 'html');
+           $data_key = array_keys($data);
+           $newphrase = str_replace($data_key, $data, $message);
+           
+           $html = true;
            Email::connect($config = NULL);
-           Email::send($to, $from, $subject, $message, $html);
-          
+           Email::send($to, $from, $subject, $newphrase, $html);
+           
        }
 
 } // End email
