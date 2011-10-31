@@ -143,17 +143,15 @@ class Email {
 	}
 	
     public static function send_mail($to, $file, $data = array())
-       {
-           $from = Kohana::message($file, 'from');
-           $subject = Kohana::message($file, 'subject');
-           $message = Kohana::message($file, 'html');
-           $data_key = array_keys($data);
-           $newphrase = str_replace($data_key, $data, $message);
-           
-           $html = true;
-           Email::connect($config = NULL);
-           Email::send($to, $from, $subject, $newphrase, $html);
-           
-       }
+    {
+        $from = Kohana::message($file, 'from');
+        $subject = Kohana::message($file, 'subject');
+        $message = Kohana::message($file, 'html');
+        $data_key = array_keys($data);
+        $newphrase = str_replace($data_key, $data, $message);        
+        $html = true;
+        Email::connect($config = NULL);
+        Email::send($to, $from, $subject, $newphrase, $html);        
+    }
 
 } // End email
