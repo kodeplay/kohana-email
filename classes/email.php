@@ -11,7 +11,8 @@
  * @copyright  (c) 2007-2008 Kohana Team
  * @license    http://kohanaphp.com/license.html
  */
-class Email {
+class Email 
+{
 
 	// SwiftMailer instance
 	protected static $mail;
@@ -142,18 +143,58 @@ class Email {
 		return Email::$mail->send($message);
 	}
 	
-    public static function send_mail($to, $file, $data = array())
-       {
-           $from = Kohana::message($file, 'from');
-           $subject = Kohana::message($file, 'subject');
-           $message = Kohana::message($file, 'html');
-           $data_key = array_keys($data);
-           $newphrase = str_replace($data_key, $data, $message);
-           
-           $html = true;
-           Email::connect($config = NULL);
-           Email::send($to, $from, $subject, $newphrase, $html);
-           
-       }
+        public static function send_mail($to, $file, $data = array())
+        {
+            $from = Kohana::message($file, 'from');
+            $subject = Kohana::message($file, 'subject');
+            $message = Kohana::message($file, 'html');
+            $data_key = array_keys($data);
+            $newphrase = str_replace($data_key, $data, $message);
+            
+            $html = true;
+            Email::connect($config = NULL);
+            Email::send($to, $from, $subject, $newphrase, $html);
+            
+        }
+
+        /**
+         * Method to send a mail using the swiftmail's decorator plugin
+         * It uses html from a kohana view file under email/views/
+         * and uses settings defined in a Kohana config file email/config/decoratedemail.php
+         * @param Array $users array of users with their firstnames and emails
+         * @param String $from
+         * @param String $subject
+         * @param String $body
+         * @return Boolean 
+         */
+        public static function decoratedmail($users, $from, $subject, $body) 
+        {
+            $settings = Kohana::config('decoratedmail')->as_array();
+            // load the base template
+            $template = View::factory('email/template')
+                ->set('settings', $settings)
+                ->set('body', $body);
+            $content = $template->render();
+            // Connect to SwiftMailer        
+            Email::connect($config = NULL);
+            (Email::$mail === NULL) and Email::connect();
+            // create the associative array to be fed to the decorator plugin
+            $replacements = array();
+            foreach ($users as $user) {
+                $replacements[$user['email']] = array(
+                    '{firstname}' => $user['firstname'],
+                    '{email}' => $user['email'],
+                );
+            }
+            // instantiate the decorator plugin and register it to the instance
+            $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
+            Email::$mail->registerPlugin($decorator);
+            // Create the message
+            $message = Swift_Message::newInstance()
+                ->setSubject($subject)
+                ->setBody($content, 'text/html');
+            $message->setTo(Arr::pluck($users, 'email'));
+            return Email::$mail->send($message);
+        }
 
 } // End email
