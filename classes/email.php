@@ -156,6 +156,11 @@ class Email
     }
 
     /**
+     * XXX
+     * not in use presently because the decorator plugin seems to be buggy.
+     * Use templated mail in a loop instead
+     * XXX
+     * 
      * Method to send a mail using the swiftmail's decorator plugin
      * It uses html from a kohana view file under email/views/
      * and uses settings defined in a Kohana config file email/config/decoratedemail.php
@@ -193,5 +198,23 @@ class Email
             ->setBody($content, 'text/html');
         $message->setTo(Arr::pluck($users, 'email'));
         return Email::$mail->send($message);
+    }
+
+    public static function templatedmail($users, $from, $subject, $body) {
+        $settings = Kohana::config('decoratedmail')->as_array();
+        // load the base template
+        $template = View::factory('email/template')
+            ->set('settings', $settings)
+            ->set('body', $body);
+        $content = $template->render();
+        // Connect to SwiftMailer        
+        (Email::$mail === NULL) and Email::connect();
+        foreach ($users as $k=>$user) {
+            $search = array('{firstname}', '{email}');
+            $replace = array($user['firstname'], $user['email']);
+            $message = str_replace($search, $replace, $content);            
+            echo $message;
+            Email::send($user['email'], 'noreply@kodelearn.com', $subject, $message, true);
+        }        
     }
 } // End email

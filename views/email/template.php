@@ -6,5 +6,6 @@
 </p>
 <p>
 This message was sent to {email}. 
-If you don't want to receive these emails from Kodelearn in the future, please click: <a href="">unsubscribe.</a>
+If you don't want to receive these emails from Kodelearn in the future, please login to 
+your kodelearn account and set your email notification preferences.
 </p>
